@@ -4,8 +4,16 @@ import (
 	"fmt"
 	"github.com/urfave/cli/v2"
 	"os"
+	"path/filepath"
 	"regexp"
+	"time"
 )
+
+const csvFile = "/.gotasks"
+
+var homeDir, err = os.UserHomeDir()
+var csvPath = homeDir + filepath.FromSlash(csvFile)
+var repository = TasksCsvRepository{Path: csvPath}
 
 var commands = []*cli.Command{
 	{
@@ -29,8 +37,13 @@ func Start(c *cli.Context) error {
 	if !IsValidIdentifier(identifier) {
 		return invalidIdentifier(identifier)
 	}
-	fmt.Println("Starting Task", identifier)
-	return nil
+
+	err := repository.save(Task{Identifier: identifier, Action: "start", At: time.Now().Format(time.RFC3339)})
+
+	if err == nil {
+		fmt.Println("Started tracking task", identifier)
+	}
+	return err
 }
 
 func invalidIdentifier(identifier string) error {
@@ -44,6 +57,7 @@ func IsValidIdentifier(identifier string) bool {
 }
 
 func main() {
+	checkForInitialCSVFile()
 	app := cli.NewApp()
 	app.Name = "Gotasks"
 	app.Usage = "CLI timetracker for your tasks."
@@ -53,5 +67,11 @@ func main() {
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
+	}
+}
+
+func checkForInitialCSVFile() {
+	if _, err := os.Stat(csvPath); os.IsNotExist(err) {
+		os.Create(csvPath)
 	}
 }
