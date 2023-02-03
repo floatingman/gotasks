@@ -14,6 +14,7 @@ const csvFile = "/.gotasks"
 var homeDir, err = os.UserHomeDir()
 var csvPath = homeDir + filepath.FromSlash(csvFile)
 var repository = TasksCsvRepository{Path: csvPath}
+var transformer = Transformer{}
 
 var commands = []*cli.Command{
 	{
@@ -35,6 +36,25 @@ var commands = []*cli.Command{
 		Usage:  "Stop tracking a given task",
 		Action: Stop,
 	},
+	{
+		Name:   "status",
+		Usage:  "Give status of all tasks",
+		Action: Status,
+	},
+}
+
+func Status(context *cli.Context) error {
+	identifer := context.Args().First()
+	if !IsValidIdentifier(identifer) {
+		return invalidIdentifier(identifer)
+	}
+	tasks, err := repository.load()
+	if err != nil {
+		return err
+	}
+	transformer.LoadedTasks = tasks.getByIdentifier(identifer)
+	fmt.Println(transformer.Transform()[identifer])
+	return nil
 }
 
 func Stop(context *cli.Context) error {
