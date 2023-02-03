@@ -27,19 +27,22 @@ var commands = []*cli.Command{
 		},
 	},
 	{
-		Name:   "start",
-		Usage:  "Start tracking a given task",
-		Action: Start,
+		Name:         "start",
+		Usage:        "Start tracking a given task",
+		Action:       Start,
+		BashComplete: AutocompleteTasks,
 	},
 	{
-		Name:   "stop",
-		Usage:  "Stop tracking a given task",
-		Action: Stop,
+		Name:         "stop",
+		Usage:        "Stop tracking a given task",
+		Action:       Stop,
+		BashComplete: AutocompleteTasks,
 	},
 	{
-		Name:   "status",
-		Usage:  "Give status of all tasks",
-		Action: Status,
+		Name:         "status",
+		Usage:        "Give status of all tasks",
+		Action:       Status,
+		BashComplete: AutocompleteTasks,
 	},
 	{
 		Name:   "clear",
@@ -75,16 +78,16 @@ func Clear(context *cli.Context) error {
 }
 
 func Status(context *cli.Context) error {
-	identifer := context.Args().First()
-	if !IsValidIdentifier(identifer) {
-		return invalidIdentifier(identifer)
+	identifier := context.Args().First()
+	if !IsValidIdentifier(identifier) {
+		return invalidIdentifier(identifier)
 	}
 	tasks, err := repository.load()
 	if err != nil {
 		return err
 	}
-	transformer.LoadedTasks = tasks.getByIdentifier(identifer)
-	fmt.Println(transformer.Transform()[identifer])
+	transformer.LoadedTasks = tasks.getByIdentifier(identifier)
+	fmt.Println(transformer.Transform()[identifier])
 	return nil
 }
 
@@ -127,12 +130,25 @@ func IsValidIdentifier(identifier string) bool {
 	return len(identifier) > 0 && re.MatchString(identifier)
 }
 
+func AutocompleteTasks(context *cli.Context) {
+	var err error
+	transformer.LoadedTasks, err = repository.load()
+	if context.Args().Len() > 0 || err != nil {
+		return
+	}
+
+	for _, task := range transformer.LoadedTasks.Items {
+		fmt.Println(task.getIdentifier())
+	}
+}
+
 func main() {
 	checkForInitialCSVFile()
 	app := cli.NewApp()
 	app.Name = "Gotasks"
 	app.Usage = "CLI timetracker for your tasks."
 	app.Version = "0.0.1"
+	app.EnableBashCompletion = true
 	app.Commands = commands
 	err := app.Run(os.Args)
 	if err != nil {
