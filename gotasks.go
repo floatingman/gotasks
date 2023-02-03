@@ -46,6 +46,24 @@ var commands = []*cli.Command{
 		Usage:  "Clear all tasks",
 		Action: Clear,
 	},
+	{
+		Name:   "list",
+		Usage:  "List all tasks",
+		Action: List,
+	},
+}
+
+func List(context *cli.Context) error {
+	var err error
+	transformer.LoadedTasks, err = repository.load()
+	if err != nil {
+		return err
+	}
+
+	for _, task := range transformer.Transform() {
+		fmt.Println(task)
+	}
+	return nil
 }
 
 func Clear(context *cli.Context) error {
