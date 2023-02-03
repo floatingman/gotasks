@@ -41,6 +41,19 @@ var commands = []*cli.Command{
 		Usage:  "Give status of all tasks",
 		Action: Status,
 	},
+	{
+		Name:   "clear",
+		Usage:  "Clear all tasks",
+		Action: Clear,
+	},
+}
+
+func Clear(context *cli.Context) error {
+	err := repository.clear()
+	if err == nil {
+		fmt.Println("Cleared all tasks")
+	}
+	return err
 }
 
 func Status(context *cli.Context) error {

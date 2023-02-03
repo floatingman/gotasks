@@ -51,3 +51,11 @@ func (csvRepository TasksCsvRepository) load() (Tasks, error) {
 	}
 	return tasks, nil
 }
+
+func (csvRepository TasksCsvRepository) clear() error {
+	csvFile, err := os.OpenFile(csvRepository.Path, os.O_TRUNC|os.O_WRONLY, 0600)
+	if err == nil {
+		csvFile.Close()
+	}
+	return err
+}
