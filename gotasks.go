@@ -30,6 +30,26 @@ var commands = []*cli.Command{
 		Usage:  "Start tracking a given task",
 		Action: Start,
 	},
+	{
+		Name:   "stop",
+		Usage:  "Stop tracking a given task",
+		Action: Stop,
+	},
+}
+
+func Stop(context *cli.Context) error {
+	identifier := context.Args().First()
+	if !IsValidIdentifier(identifier) {
+		return invalidIdentifier(identifier)
+	}
+
+	err := repository.save(Task{Identifier: identifier, Action: "stop", At: time.Now().Format(time.RFC3339)})
+
+	if err == nil {
+		fmt.Println("Stopped tracking task: " + identifier)
+	}
+
+	return err
 }
 
 func Start(c *cli.Context) error {
@@ -41,7 +61,7 @@ func Start(c *cli.Context) error {
 	err := repository.save(Task{Identifier: identifier, Action: "start", At: time.Now().Format(time.RFC3339)})
 
 	if err == nil {
-		fmt.Println("Started tracking task", identifier)
+		fmt.Println("Started tracking task ", identifier)
 	}
 	return err
 }
